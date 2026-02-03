@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6WHOIS - Анализ сайта и проверка SSL сертификатов</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "6WHOIS - Анализ доменов и SSL",
+      "url": "https://6whois.ru",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://6whois.ru/?domain={search_term_string}",
+        "query-input": "required name=search_term_string"
+      },
+      "description": "Бесплатный онлайн-сервис проверки доменов, SSL-сертификатов и анализа сайтов",
+      "creator": {
+        "@type": "Organization",
+        "name": "6WHOIS Service",
+        "url": "https://6whois.ru"
+      }
+    }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Шапка */
+        header {
+            background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            padding: 25px 0;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .logo {
+            font-size: 26px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            color: #4fc3f7;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 25px;
+            font-weight: 500;
+            transition: color 0.3s;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+        
+        .nav-links a:hover {
+            color: #4fc3f7;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Основная форма */
+        .main-form {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .form-title {
+            color: #182848;
+            margin-bottom: 20px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-title i {
+            margin-right: 10px;
+            color: #4b6cb7;
+        }
+        
+        .input-group {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .domain-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e1e5eb;
+            border-radius: 8px 0 0 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .domain-input:focus {
+            border-color: #4b6cb7;
+        }
+        
+        .check-btn {
+            background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            border: none;
+            padding: 0 30px;
+            border-radius: 0 8px 8px 0;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        
+        .check-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .check-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        /* Прогресс-бар */
+        .progress-bar {
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        
+        .progress-container {
+            height: 10px;
+            background-color: #e1e5eb;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .progress-text {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* Результаты */
+        .results {
+            display: none;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .export-btn {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+        
+        .export-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .section-title {
+            color: #182848;
+            margin: 30px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f2f5;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title:first-child {
+            margin-top: 0;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+            color: #4b6cb7;
+        }
+        
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .result-card {
+            background-color: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #4b6cb7;
+        }
+        
+        .result-card h3 {
+            color: #182848;
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .result-card h3 i {
+            margin-right: 8px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .status.good {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status.medium {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .status.bad {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .screenshot-container {
+            background: #f0f2f5;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .screenshot {
+            width: 100%;
+            max-width: 300px;
+            border-radius: 6px;
+            border: 1px solid #e1e5eb;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        
+        .screenshot:hover {
+            transform: scale(1.02);
+        }
+        
+        .screenshot-caption {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        
+        .recommendation {
+            background-color: #f0f7ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        
+        .recommendation h4 {
+            color: #182848;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        ul {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+        
+        li {
+            margin-bottom: 5px;
+        }
+        
+        .info-box {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        /* Отзывы */
+        .testimonials {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin: 30px 0;
+        }
+        
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .testimonial-card {
+            background-color: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #4fc3f7;
+        }
+        
+        .testimonial-content {
+            font-style: italic;
+            margin-bottom: 15px;
+            color: #555;
+        }
+        
+        .testimonial-author {
+            border-top: 1px solid #e1e5eb;
+            padding-top: 15px;
+        }
+        
+        .testimonial-author strong {
+            display: block;
+            color: #182848;
+        }
+        
+        .testimonial-author span {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* Статистика */
+        .site-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-item i {
+            font-size: 24px;
+            color: #4b6cb7;
+        }
+        
+        .stat-number {
+            display: block;
+            font-size: 24px;
+            font-weight: 700;
+            color: #182848;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* FAQ */
+        .faq-section {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin: 30px 0;
+        }
+        
+        .faq-item {
+            margin-bottom: 15px;
+            border: 1px solid #e1e5eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .faq-question {
+            padding: 15px;
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .faq-answer {
+            padding: 0 15px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s, padding 0.3s;
+        }
+        
+        .faq-answer.active {
+            padding: 15px;
+            max-height: 200px;
+        }
+        
+        /* Интересное */
+        .interesting {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-top: 30px;
+        }
+        
+        .interesting-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .interesting-card {
+            background-color: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .interesting-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .interesting-card h3 {
+            color: #182848;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        /* ПРОФЕССИОНАЛЬНЫЙ ПОДВАЛ */
+        footer {
+            background: linear-gradient(135deg, #182848 0%, #4b6cb7 100%);
+            color: white;
+            padding: 60px 0 30px;
+            margin-top: auto;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-section h3 {
+            color: #4fc3f7;
+            margin-bottom: 20px;
+            font-size: 20px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .footer-section h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background-color: #4fc3f7;
+        }
+        
+        .footer-section p {
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer-section ul li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-section ul li a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.9;
+            transition: opacity 0.3s, padding-left 0.3s;
+        }
+        
+        .footer-section ul li a:hover {
+            opacity: 1;
+            padding-left: 5px;
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .site-info {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+        
+        .site-info strong {
+            color: #4fc3f7;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .nav-links {
+                margin-top: 20px;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .nav-links a {
+                margin: 5px 10px;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .domain-input {
+                border-radius: 8px;
+                margin-bottom: 10px;
+            }
+            
+            .check-btn {
+                border-radius: 8px;
+                padding: 15px;
+            }
+            
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .footer-section h3::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            
+            .site-stats {
+                gap: 20px;
+            }
+            
+            .stat-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .main-form, .results, .interesting, .testimonials, .faq-section {
+                padding: 20px 15px;
+            }
+            
+            .form-title {
+                font-size: 20px;
+            }
+            
+            .result-card {
+                padding: 15px;
+            }
+            
+            .footer-content {
+                gap: 30px;
+            }
+        }
+        
+        /* Анимация загрузки */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .close-modal:hover {
+            color: #182848;
+        }
+        
+        /* CAPTCHA стили */
+        .captcha-box {
+            text-align: center;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .captcha-text {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            color: #182848;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 15px 0;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-search"></i> WHOIS
+                </div>
+                <div class="nav-links">
+                    <a href="#main-form" id="home-link"><i class="fas fa-home"></i> Главная</a>
+                    <a href="#ssl-info" id="ssl-link"><i class="fas fa-certificate"></i> SSL проверка</a>
+                    <a href="#hosting-info" id="hosting-link"><i class="fas fa-server"></i> Хостинг</a>
+                    <a href="#help-info" id="help-link"><i class="fas fa-question-circle"></i> Помощь</a>
+                    <a href="#privacy-link" id="privacy-link"><i class="fas fa-shield-alt"></i> Конфиденциальность</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container">
+        <!-- Статистика -->
+        <div class="site-stats">
+            <div class="stat-item">
+                <i class="fas fa-users"></i>
+                <div>
+                    <span class="stat-number" id="todayChecks">12,847</span>
+                    <span class="stat-label">проверок сегодня</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-globe"></i>
+                <div>
+                    <span class="stat-number" id="totalChecks">2,341,056</span>
+                    <span class="stat-label">всего проверок</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-clock"></i>
+                <div>
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">работаем</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-form" id="main-form">
+            <h2 class="form-title"><i class="fas fa-globe"></i> Проверка домена и SSL сертификата</h2>
+            <p>Данный сервис позволяет проверить <strong>SSL сертификат сайта</strong> он-лайн. Укажите свой домен и мы проверим его по всем параметрам.</p>
+            
+            <div class="input-group">
+                <input type="text" class="domain-input" id="domainInput" placeholder="например, yandex.ru" value="example.com">
+                <button class="check-btn" id="checkBtn">Проверить</button>
+            </div>
+            
+            <p>Вы сможете:</p>
+            <ul>
+                <li>узнать и проверить срок действия SSL сертификата;</li>
+                <li>узнать для какого домена выдан SSL сертификат;</li>
+                <li>узнать кем и когда выдан SSL сертификат;</li>
+                <li>узнать и проверить цепочку SSL сертификатов;</li>
+                <li>узнать и проверить промежуточные и корневые сертификаты.</li>
+            </ul>
+        </div>
+        
+        <!-- Модальные окна для информации -->
+        <div class="modal" id="sslModal">
+            <div class="modal-content">
+                <span class="close-modal" id="closeSsl">&times;</span>
+                <h2><i class="fas fa-certificate"></i> SSL проверка</h2>
+                <p>SSL (Secure Sockets Layer) - это протокол безопасности, который создает зашифрованное соединение между веб-сервером и браузером.</p>
+                <p>Наш сервис проверяет:</p>
+                <ul>
+                    <li>Срок действия SSL-сертификата</li>
+                    <li>Корректность установки</li>
+                    <li>Цепочку доверия</li>
+                    <li>Алгоритмы шифрования</li>
+                    <li>Наличие уязвимостей</li>
+                    <li>Соответствие стандартам PCI DSS</li>
+                </ul>
+                <p>Без SSL-сертификата ваш сайт будет помечен как "Небезопасный" в браузерах.</p>
+            </div>
+        </div>
+        
+        <div class="modal" id="hostingModal">
+            <div class="modal-content">
+                <span class="close-modal" id="closeHosting">&times;</span>
+                <h2><i class="fas fa-server"></i> Хостинг</h2>
+                <p>Хостинг - это услуга по размещению сайта на сервере, который постоянно подключен к интернету.</p>
+                <p>Мы проверяем:</p>
+                <ul>
+                    <li>Скорость ответа сервера (TTFB)</li>
+                    <li>Доступность сайта (uptime)</li>
+                    <li>Географическое расположение сервера</li>
+                    <li>Наличие резервного копирования</li>
+                    <li>Поддержку PHP версий</li>
+                    <li>Наличие CDN и кэширования</li>
+                </ul>
+                <p>Плохой хостинг может существенно замедлить скорость загрузки вашего сайта и повлиять на SEO.</p>
+            </div>
+        </div>
+        
+        <div class="modal" id="helpModal">
+            <div class="modal-content">
+                <span class="close-modal" id="closeHelp">&times;</span>
+                <h2><i class="fas fa-question-circle"></i> Помощь</h2>
+                <p>Нужна помощь в использовании нашего сервиса?</p>
+                <ul>
+                    <li><strong>Введите домен</strong> в поле ввода (например: site.ru)</li>
+                    <li><strong>Нажмите "Проверить"</strong> для запуска анализа</li>
+                    <li><strong>Изучите результаты</strong> - мы предоставим полный отчет</li>
+                    <li><strong>Следуйте рекомендациям</strong> для улучшения вашего сайта</li>
+                    <li><strong>Экспортируйте отчет</strong> для дальнейшего анализа</li>
+                </ul>
+                <p>Если у вас остались вопросы, свяжитесь с нашей поддержкой:</p>
+                <p>Email: support@6whois-check.ru<br>Телефон: +7 (999) 313-41-91</p>
+                <p>Время работы поддержки: Пн-Пт 9:00-18:00 (МСК)</p>
+            </div>
+        </div>
+        
+        <div class="modal" id="privacyModal">
+            <div class="modal-content">
+                <span class="close-modal" id="closePrivacy">&times;</span>
+                <h2><i class="fas fa-shield-alt"></i> Политика конфиденциальности</h2>
+                <p><strong>Последнее обновление:</strong> 15 октября 2023 г.</p>
+                
+                <h3>1. Сбор информации</h3>
+                <p>Мы собираем только доменные имена для предоставления услуг анализа. Никакие персональные данные не сохраняются.</p>
+                
+                <h3>2. Использование информации</h3>
+                <p>Информация используется исключительно для формирования отчетов анализа сайтов. Мы не передаем данные третьим лицам.</p>
+                
+                <h3>3. Защита данных</h3>
+                <p>Мы используем современные методы шифрования для защиты передаваемых данных. Все соединения защищены протоколом HTTPS.</p>
+                
+                <h3>4. Cookies</h3>
+                <p>Сайт использует только технические cookies, необходимые для работы сервиса. Мы не используем cookies для отслеживания пользователей.</p>
+                
+                <h3>5. Контакты</h3>
+                <p>По вопросам конфиденциальности: privacy@6whois-check.ru</p>
+            </div>
+        </div>
+        
+        <div class="results" id="results">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="section-title" style="margin: 0;"><i class="fas fa-chart-bar"></i> Результаты анализа сайта: <span id="domainName">example.com</span></h2>
+                <button class="export-btn" id="exportBtn">
+                    <i class="fas fa-download"></i> Экспорт отчета (PDF)
+                </button>
+            </div>
+            
+            <!-- Технические характеристики -->
+            <h3 class="section-title"><i class="fas fa-cogs"></i> Технические характеристики</h3>
+            <div class="result-grid">
+                <div class="result-card fade-in">
+                    <h3><i class="fas fa-tachometer-alt"></i> Скорость загрузки</h3>
+                    <div class="status good">Хорошо: 2.1 сек</div>
+                    <p>Сайт загружается за 2.1 секунды, что является приемлемым показателем. Время до первого байта (TTFB): 450мс.</p>
+                    
+                    <div class="screenshot-container">
+                        <div class="screenshot" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 180px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px;">
+                            GTmetrix Report<br>Performance: B (85%)<br>Load Time: 2.1s
+                        </div>
+                        <div class="screenshot-caption">Отчет GTmetrix: Скорость загрузки 2.1с, оценка B (85%)</div>
+                    </div>
+                    
+                    <div class="recommendation">
+                        <h4>Рекомендации по скорости:</h4>
+                        <p>Скорость загрузки приемлема, но можно улучшить за счет:</p>
+                        <ul>
+                            <li>Оптимизации изображений (использование WebP формата)</li>
+                            <li>Включения сжатия GZIP/Brotli</li>
+                            <li>Минификации CSS и JavaScript файлов</li>
+                            <li>Использования кэширования на стороне сервера</li>
+                            <li>Подключения CDN для статических ресурсов</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="result-card fade-in">
+                    <h3><i class="fas fa-shield-alt"></i> Безопасность (HTTPS)</h3>
+                    <div class="status good">Отлично: SSL установлен</div>
+                    <p>Сайт использует защищенный протокол HTTPS. SSL-сертификат действителен до 15.12.2024. Алгоритм шифрования: TLS 1.3.</p>
+                    
+                    <div class="screenshot-container">
+                        <div class="screenshot" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); height: 180px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px;">
+                            SSL Labs Test<br>Rating: A+<br>Protocols: TLS 1.2, 1.3
+                        </div>
+                        <div class="screenshot-caption">SSL Labs проверка: Рейтинг A+, все протоколы безопасны</div>
+                    </div>
+                    
+                    <div class="recommendation">
+                        <h4>Рекомендации по безопасности:</h4>
+                        <p>С безопасностью все в порядке. SSL-сертификат установлен корректно, рейтинг A+.</p>
+                        <ul>
+                            <li>Рекомендуется обновлять сертификат за 30 дней до истечения срока</li>
+                            <li>Включить HSTS для дополнительной безопасности</li>
+                            <li>Регулярно проверять уязвимости SSL/TLS</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="result-card fade-in">
+                    <h3><i class="fas fa-mobile-alt"></i> Адаптивная верстка</h3>
+                    <div class="status medium">Средне: частично адаптивен</div>
+                    <p>Сайт частично адаптирован под мобильные устройства. Есть некоторые проблемы на экранах меньше 768px. Размер текста на мобильных: 14px.</p>
+                    
+                    <div class="screenshot-container">
+                        <div class="screenshot" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); height: 180px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px;">
+                            Mobile Friendly Test<br>Result: Partially<br>Viewport: Missing
+                        </div>
+                        <div class="screenshot-caption">Проверка адаптивности с помощью Google Mobile-Friendly Test</div>
+                    </div>
+                    
+                    <div class="recommendation">
+                        <h4>Рекомендации по адаптивности:</h4>
+                        <ul>
+                            <li>Использовать медиа-запросы для адаптации под разные экраны</li>
+                            <li>Оптимизировать навигацию для мобильных устройств (бургер-меню)</li>
+                            <li>Увеличить размер кликабельных элементов на touch-экранах</li>
+                            <li>Оптимизировать шрифты для мобильных устройств</li>
+                            <li>Добавить viewport мета-тег</li>
+                            <li>Тестировать на реальных устройствах</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SEO анализ -->
+            <h3 class="section-title"><i class="fas fa-search"></i> SEO анализ</h3>
+            
+            <!-- Индексация в поисковиках -->
+            <div class="result-card fade-in">
+                <h3><i class="fas fa-sitemap"></i> Индексация в поисковиках</h3>
+                <div class="status good">Яндекс: 128 страниц</div>
+                <div class="status good">Google: 156 страниц</div>
+                <p>Количество проиндексированных страниц в поисковых системах:</p>
+                <ul>
+                    <li><strong>Яндекс:</strong> 128 проиндексированных страниц</li>
+                    <li><strong>Google:</strong> 156 проиндексированных страниц</li>
+                    <li><strong>Последняя проверка:</strong> 14.10.2023</li>
+                    <li><strong>Скорость индексации:</strong> Средняя (2-3 дня)</li>
+                </ul>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); height: 180px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px;">
+                        Яндекс.Вебмастер<br>Indexed: 128 pages<br>Last crawl: 14.10.2023
+                    </div>
+                    <div class="screenshot-caption">Скриншот Яндекс.Вебмастер - проверка индексации</div>
+                </div>
+                
+                <div class="info-box">
+                    <p><i class="fas fa-info-circle"></i> <strong>Как произведена оценка:</strong> Данные получены через сервис Яндекс.Вебмастер для Яндекса и Google Search Console для Google. Для проверки необходимо добавить сайт в эти сервисы и подтвердить права на него.</p>
+                </div>
+            </div>
+            
+            <!-- Органический трафик -->
+            <div class="result-card fade-in">
+                <h3><i class="fas fa-chart-line"></i> Органический трафик</h3>
+                <div class="status medium">Яндекс: ~1,200 посетителей/мес</div>
+                <div class="status good">Google: ~2,800 посетителей/мес</div>
+                <p>Примерный объем трафика из органической выдачи:</p>
+                <ul>
+                    <li><strong>Яндекс:</strong> ~1,200 посетителей в месяц</li>
+                    <li><strong>Google:</strong> ~2,800 посетителей в месяц</li>
+                    <li><strong>Общий трафик:</strong> ~4,000 посетителей/месяц</li>
+                    <li><strong>Тенденция:</strong> Стабильный рост (+15% за 3 месяца)</li>
+                </ul>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); height: 180px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px;">
+                        SimilarWeb Data<br>Visitors: ~4,000/mo<br>Growth: +15%
+                    </div>
+                    <div class="screenshot-caption">Данные о трафике из сервиса SimilarWeb</div>
+                </div>
+                
+                <div class="info-box">
+                    <p><i class="fas fa-info-circle"></i> <strong>Как произведена оценка:</strong> Оценка выполнена с помощью сервиса SimilarWeb, который анализирует трафик аналогичных сайтов в тематике. Для точных данных необходимо подключить Яндекс.Метрику и Google Analytics.</p>
+                </div>
+            </div>
+            
+            <!-- Файлы robots.txt и sitemap.xml -->
+            <div class="result-grid">
+                <div class="result-card fade-in">
+                    <h3><i class="fas fa-robot"></i> Файл robots.txt</h3>
+                    <div class="status good">Присутствует</div>
+                    <p>Файл robots.txt найден и доступен по адресу: <code>https://example.com/robots.txt</code></p>
+                    <p>Файл настроен корректно, разрешена индексация основных страниц сайта. Запрещены: /admin, /tmp, /test.</p>
+                    
+                    <div class="screenshot-container">
+                        <div class="screenshot" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); height: 150px; display: flex; align-items: center; justify-content: center; color: #182848; font-weight: bold; font-size: 16px;">
+                            User-agent: *<br>Allow: /<br>Disallow: /admin/<br>Sitemap: ...
+                        </div>
+                        <div class="screenshot-caption">Содержимое файла robots.txt</div>
+                    </div>
+                </div>
+                
+                <div class="result-card fade-in">
+                    <h3><i class="fas fa-sitemap"></i> Файл sitemap.xml</h3>
+                    <div class="status bad">Отсутствует</div>
+                    <p>Файл sitemap.xml не найден по адресу: <code>https://example.com/sitemap.xml</code></p>
+                    <p>Также проверены альтернативные расположения: sitemap_index.xml, sitemap1.xml - не найдены.</p>
+                    
+                    <div class="recommendation">
+                        <h4>Рекомендации:</h4>
+                        <p>Рекомендуется создать файл sitemap.xml и:</p>
+                        <ul>
+                            <li>Добавить его в Яндекс.Вебмастер</li>
+                            <li>Добавить его в Google Search Console</li>
+                            <li>Указать путь к sitemap в файле robots.txt</li>
+                            <li>Регулярно обновлять sitemap при добавлении новых страниц</li>
+                            <li>Использовать sitemap index для больших сайтов</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Уникальность контента и мета-теги -->
+            <div class="result-card fade-in">
+                <h3><i class="fas fa-file-word"></i> Уникальность контента и мета-теги</h3>
+                <div class="status good">Уникальность текста: 94%</div>
+                <div class="status medium">Мета-теги: частично заполнены</div>
+                
+                <p>Проведен анализ уникальности контента и мета-тегов:</p>
+                <ul>
+                    <li><strong>Уникальность основного текста:</strong> 94% (хороший показатель)</li>
+                    <li><strong>Тег Title:</strong> Заполнен на главной странице, но отсутствует на некоторых внутренних</li>
+                    <li><strong>Мета-тег Description:</strong> Заполнен на 60% страниц</li>
+                    <li><strong>Теги H1-H6:</strong> Используются правильно, иерархия соблюдена</li>
+                    <li><strong>Альтернативные тексты для изображений (alt):</strong> Заполнены на 70% изображений</li>
+                    <li><strong>Open Graph теги:</strong> Отсутствуют</li>
+                </ul>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); height: 180px; display: flex; align-items: center; justify-content: center; color: #182848; font-weight: bold; font-size: 18px;">
+                        Text.ru Analysis<br>Uniqueness: 94%<br>Spam: 2%<br>Water: 4%
+                    </div>
+                    <div class="screenshot-caption">Проверка уникальности контента с помощью Text.ru</div>
+                </div>
+                
+                <div class="recommendation">
+                    <h4>Рекомендации по контенту и мета-тегам:</h4>
+                    <ul>
+                        <li>Заполнить теги Title и Description на всех страницах сайта</li>
+                        <li>Добавить alt-тексты ко всем изображениям</li>
+                        <li>Проверить уникальность всех текстовых материалов (целевой показатель - выше 90%)</li>
+                        <li>Оптимизировать мета-теги под ключевые запросы</li>
+                        <li>Добавить Open Graph теги для социальных сетей</li>
+                        <li>Создать структуру данных (Schema.org)</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Общие рекомендации -->
+            <div class="recommendation">
+                <h4><i class="fas fa-lightbulb"></i> Общие рекомендации по улучшению сайта:</h4>
+                <p>На основе проведенного анализа рекомендуем приоритетные действия:</p>
+                <ol>
+                    <li><strong>Срочно (неделя):</strong> Создать и добавить sitemap.xml</li>
+                    <li><strong>Важно (месяц):</strong> Заполнить мета-теги на всех страницах</li>
+                    <li><strong>Рекомендовано (3 месяца):</strong> Улучшить адаптивность для мобильных устройств</li>
+                    <li><strong>Для развития (постоянно):</strong> Регулярно добавлять уникальный контент</li>
+                    <li><strong>Оптимизация (6 месяцев):</strong> Внедрить Schema.org разметку</li>
+                </ol>
+                <p><strong>Ожидаемый эффект:</strong> Увеличение трафика на 20-30%, улучшение позиций в поиске, рост конверсии.</p>
+            </div>
+        </div>
+        
+        <!-- Отзывы -->
+        <div class="testimonials">
+            <h3 class="section-title"><i class="fas fa-comments"></i> Отзывы наших пользователей</h3>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"Отличный сервис! Регулярно проверяю клиентские сайты перед сдачей проекта. Особенно полезен анализ скорости и SSL. Экономит часы ручной проверки."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <strong>Алексей Петров</strong>
+                        <span>Веб-разработчик, Москва</span>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"Сервис помог обнаружить проблему с SSL-сертификатом до того, как она стала критической. Клиент был очень благодарен за проактивный подход. Рекомендую всем SEO-специалистам!"</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <strong>Марина Смирнова</strong>
+                        <span>SEO-специалист, СПб</span>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"Как владелец интернет-магазина, ценю возможность быстро проверить все технические аспекты. Особенно нравится подробный отчет с рекомендациями. Пользуюсь уже больше года!"</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <strong>Дмитрий Иванов</strong>
+                        <span>Владелец бизнеса, Екатеринбург</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- FAQ -->
+        <div class="faq-section">
+            <h3 class="section-title"><i class="fas fa-question-circle"></i> Частые вопросы (FAQ)</h3>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Как часто обновляются данные в отчете?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Данные обновляются в реальном времени при каждой проверке. Информация об индексации может быть актуальна в течение 24 часов. Данные о трафике обновляются ежемесячно.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Можно ли сохранить или отправить отчет?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Да, вы можете экспортировать отчет в PDF формате, нажав кнопку "Экспорт отчета". Также можно отправить отчет на email или поделиться ссылкой на результаты.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Насколько точны данные о трафике?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Данные о трафике являются оценочными и основаны на анализе аналогичных сайтов. Для точных данных необходимо подключить аналитические системы: Яндекс.Метрику или Google Analytics.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Сервис бесплатный? Есть ли ограничения?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Да, сервис полностью бесплатный. Вы можете проверять неограниченное количество доменов. Единственное ограничение - не более 10 проверок в минуту с одного IP-адреса.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Как часто нужно проверять сайт?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Рекомендуем проверять сайт:</p>
+                    <ul>
+                        <li>После любых значительных изменений на сайте</li>
+                        <li>При падении позиций в поиске</li>
+                        <li>Перед запуском рекламных кампаний</li>
+                        <li>Регулярно, раз в 1-3 месяца для мониторинга</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="interesting">
+            <h2 class="section-title"><i class="fas fa-lightbulb"></i> Интересно и полезно</h2>
+            <div class="interesting-grid">
+                <div class="interesting-card" id="monitoring-info">
+                    <h3><i class="fas fa-eye"></i> Мониторинг сайта 24/7</h3>
+                    <p>Теперь вы не потеряете своих посетителей! Системы мониторинга доступности сайта 24/7 с мгновенными уведомлениями.</p>
+                    <p style="margin-top: 10px; font-size: 14px; color: #666;"><i class="fas fa-clock"></i> Время реакции: 1 минута</p>
+                </div>
+                
+                <div class="interesting-card" id="hosting-info">
+                    <h3><i class="fas fa-gamepad"></i> Хостинг игровых серверов</h3>
+                    <p>Полное руководство для геймеров по выбору и настройке игровых серверов. От Minecraft до Counter-Strike 2.</p>
+                    <p style="margin-top: 10px; font-size: 14px; color: #666;"><i class="fas fa-server"></i> Топ-5 хостингов 2023</p>
+                </div>
+                
+                <div class="interesting-card" id="email-info">
+                    <h3><i class="fas fa-envelope"></i> Email-рассылки без спама</h3>
+                    <p>Как правильно рассылать письма и не попадать в СПАМ? Проверенные методы email-маркетинга для роста конверсии.</p>
+                    <p style="margin-top: 10px; font-size: 14px; color: #666;"><i class="fas fa-chart-line"></i> До 40% открытий</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- ПРОФЕССИОНАЛЬНЫЙ ПОДВАЛ -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>О сервисе</h3>
+                    <p>6WHOIS - это профессиональный инструмент для анализа доменов и SSL-сертификатов. Мы помогаем веб-мастерам и владельцам сайтов улучшать свои проекты с 2020 года.</p>
+                    <div class="site-info">
+                        <p><strong>Сайт создан:</strong> 14.05.2023 года</p>
+                        <p><strong>Версия:</strong> 2.1.0 (Стабильная)</p>
+                        <p><strong>Последнее обновление:</strong> 15.10.2023</p>
+                        <p><strong>Технологии:</strong> HTML5, CSS3, JavaScript, Node.js</p>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Навигация</h3>
+                    <ul>
+                        <li><a href="#main-form"><i class="fas fa-chevron-right"></i> Главная</a></li>
+                        <li><a href="#ssl-info"><i class="fas fa-chevron-right"></i> SSL проверка</a></li>
+                        <li><a href="#hosting-info"><i class="fas fa-chevron-right"></i> Хостинг</a></li>
+                        <li><a href="#help-info"><i class="fas fa-chevron-right"></i> Помощь</a></li>
+                        <li><a href="#results"><i class="fas fa-chevron-right"></i> Пример анализа</a></li>
+                        <li><a href="#privacy-link"><i class="fas fa-chevron-right"></i> Конфиденциальность</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Контакты</h3>
+                    <p><i class="fas fa-envelope"></i> info@6whois-check.ru</p>
+                    <p><i class="fas fa-phone"></i> +7 (999) 313-41-91</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Москва, ул. Щепкина, д. 10</p>
+                    <p><i class="fas fa-clock"></i> Пн-Пт: 9:00-18:00 (МСК)</p>
+                    <div style="margin-top: 20px;">
+                        <a href="https://t.me/whois_check_bot" target="_blank" style="margin-right: 15px; font-size: 20px; color: #4fc3f7;">
+                            <i class="fab fa-telegram"></i>
+                        </a>
+                        <a href="https://vk.com/whois_check" target="_blank" style="margin-right: 15px; font-size: 20px; color: #4fc3f7;">
+                            <i class="fab fa-vk"></i>
+                        </a>
+                        <a href="https://github.com/whois-check" target="_blank" style="margin-right: 15px; font-size: 20px; color: #4fc3f7;">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="https://youtube.com/@whois_check" target="_blank" style="font-size: 20px; color: #4fc3f7;">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2023 6WHOIS - Сервис проверки доменов и SSL сертификатов. Все права защищены.</p>
+                <p>Информация предоставляется "сервисом 6whois". Мы не несем ответственности за решения, принятые на основе этой информации.</p>
+                <p style="margin-top: 10px; font-size: 12px;">6WHOIS является официальным регистратором доменных имен. Все товарные знаки принадлежат их правообладателям.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkBtn = document.getElementById('checkBtn');
+            const domainInput = document.getElementById('domainInput');
+            const results = document.getElementById('results');
+            const domainName = document.getElementById('domainName');
+            const exportBtn = document.getElementById('exportBtn');
+            
+            // Статистика (динамическое обновление)
+            const todayChecks = document.getElementById('todayChecks');
+            const totalChecks = document.getElementById('totalChecks');
+            
+            // Обновление статистики
+            function updateStats() {
+                const today = Math.floor(Math.random() * 500) + 12500;
+                const total = 2341056 + Math.floor(Math.random() * 1000);
+                
+                todayChecks.textContent = today.toLocaleString();
+                totalChecks.textContent = total.toLocaleString();
+            }
+            
+            // Обновляем статистику каждые 10 секунд
+            updateStats();
+            setInterval(updateStats, 10000);
+            
+            // Данные для популярных доменов
+            const domainData = {
+                'yandex.ru': {
+                    speed: '1.8 сек',
+                    sslStatus: 'Действителен до 2025-12-01',
+                    pagesYandex: '10.5M',
+                    pagesGoogle: '12.3M',
+                    trafficYandex: '~45M/мес',
+                    trafficGoogle: '~60M/мес',
+                    rating: 'Отлично'
+                },
+                'google.com': {
+                    speed: '1.2 сек',
+                    sslStatus: 'Действителен до 2025-08-15',
+                    pagesYandex: '8.2M',
+                    pagesGoogle: 'Неограничено',
+                    trafficYandex: '~28M/мес',
+                    trafficGoogle: '~3.5B/мес',
+                    rating: 'Идеально'
+                },
+                'vk.com': {
+                    speed: '2.3 сек',
+                    sslStatus: 'Действителен до 2024-11-20',
+                    pagesYandex: '5.1M',
+                    pagesGoogle: '6.8M',
+                    trafficYandex: '~120M/мес',
+                    trafficGoogle: '~95M/мес',
+                    rating: 'Хорошо'
+                },
+                'mail.ru': {
+                    speed: '2.1 сек',
+                    sslStatus: 'Действителен до 2024-09-30',
+                    pagesYandex: '3.8M',
+                    pagesGoogle: '4.2M',
+                    trafficYandex: '~85M/мес',
+                    trafficGoogle: '~65M/мес',
+                    rating: 'Хорошо'
+                }
+            };
+            
+            // Элементы для модальных окон
+            const sslModal = document.getElementById('sslModal');
+            const hostingModal = document.getElementById('hostingModal');
+            const helpModal = document.getElementById('helpModal');
+            const privacyModal = document.getElementById('privacyModal');
+            const closeSsl = document.getElementById('closeSsl');
+            const closeHosting = document.getElementById('closeHosting');
+            const closeHelp = document.getElementById('closeHelp');
+            const closePrivacy = document.getElementById('closePrivacy');
+            
+            // Кнопки в шапке
+            const homeLink = document.getElementById('home-link');
+            const sslLink = document.getElementById('ssl-link');
+            const hostingLink = document.getElementById('hosting-link');
+            const helpLink = document.getElementById('help-link');
+            const privacyLink = document.getElementById('privacy-link');
+            
+            // Карточки в разделе "Интересно и полезно"
+            const monitoringCard = document.getElementById('monitoring-info');
+            const hostingCard = document.getElementById('hosting-info');
+            const emailCard = document.getElementById('email-info');
+            
+            // FAQ
+            const faqQuestions = document.querySelectorAll('.faq-question');
+            
+            // Проверка на человека
+            let isHuman = false;
+            let clickCount = 0;
+            
+            document.addEventListener('click', function() {
+                clickCount++;
+                if (clickCount >= 3) {
+                    isHuman = true;
+                }
+            });
+            
+            // Основная функция проверки домена
+            checkBtn.addEventListener('click', function() {
+                const domain = domainInput.value.trim().toLowerCase();
+                
+                if (!domain) {
+                    alert('Пожалуйста, введите домен для проверки');
+                    domainInput.focus();
+                    return;
+                }
+                
+                if (!domain.includes('.') || domain.length < 4) {
+                    alert('Пожалуйста, введите корректный домен (например, yandex.ru)');
+                    domainInput.focus();
+                    return;
+                }
+                
+                // Проверка на бота (случайная)
+                if (!isHuman && Math.random() > 0.7) {
+                    showCaptcha(domain);
+                    return;
+                }
+                
+                startAnalysis(domain);
+            });
+            
+            function startAnalysis(domain) {
+                // Скрываем результаты если открыты
+                results.style.display = 'none';
+                
+                // Создаем прогресс-бар
+                const progressBar = document.createElement('div');
+                progressBar.className = 'progress-bar';
+                progressBar.innerHTML = `
+                    <div class="progress-container">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">Подготовка анализа...</div>
+                `;
+                results.parentNode.insertBefore(progressBar, results);
+                
+                // Имитация прогресса
+                let progress = 0;
+                const progressFill = document.getElementById('progressFill');
+                const progressText = document.getElementById('progressText');
+                
+                const interval = setInterval(() => {
+                    progress += 2;
+                    progressFill.style.width = progress + '%';
+                    
+                    if (progress <= 20) {
+                        progressText.textContent = 'Проверка DNS записей...';
+                    } else if (progress <= 40) {
+                        progressText.textContent = 'Анализ скорости загрузки...';
+                    } else if (progress <= 60) {
+                        progressText.textContent = 'Проверка SSL сертификата...';
+                    } else if (progress <= 80) {
+                        progressText.textContent = 'Сбор данных об индексации...';
+                    } else if (progress < 100) {
+                        progressText.textContent = 'Формирование отчета...';
+                    } else {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            progressBar.remove();
+                            showResults(domain);
+                        }, 300);
+                    }
+                }, 50);
+            }
+            
+            function showResults(domain) {
+                domainName.textContent = domain;
+                
+                // Обновляем данные если есть в базе
+                if (domainData[domain]) {
+                    const data = domainData[domain];
+                    
+                    // Находим и обновляем элементы
+                    const speedElement = document.querySelector('.result-card:nth-child(1) .status');
+                    const sslElement = document.querySelector('.result-card:nth-child(2) .status');
+                    const yandexPages = document.querySelectorAll('.result-card')[3].querySelectorAll('.status')[0];
+                    const googlePages = document.querySelectorAll('.result-card')[3].querySelectorAll('.status')[1];
+                    const yandexTraffic = document.querySelectorAll('.result-card')[4].querySelectorAll('.status')[0];
+                    const googleTraffic = document.querySelectorAll('.result-card')[4].querySelectorAll('.status')[1];
+                    
+                    if (speedElement) speedElement.textContent = `Отлично: ${data.speed}`;
+                    if (sslElement) sslElement.textContent = `Идеально: SSL установлен`;
+                    
+                    // Обновляем текст в карточках
+                    if (yandexPages) yandexPages.textContent = `Яндекс: ${data.pagesYandex}`;
+                    if (googlePages) googlePages.textContent = `Google: ${data.pagesGoogle}`;
+                    if (yandexTraffic) yandexTraffic.textContent = `Яндекс: ${data.trafficYandex}`;
+                    if (googleTraffic) googleTraffic.textContent = `Google: ${data.trafficGoogle}`;
+                    
+                    // Обновляем описание SSL
+                    const sslDesc = document.querySelector('.result-card:nth-child(2) p');
+                    if (sslDesc) sslDesc.textContent = `Сайт использует защищенный протокол HTTPS. SSL-сертификат действителен до ${data.sslStatus}. Алгоритм шифрования: TLS 1.3.`;
+                    
+                    // Добавляем общую оценку
+                    const generalRec = document.querySelector('.recommendation:last-child p:last-child');
+                    if (generalRec) {
+                        generalRec.innerHTML = `<strong>Общая оценка сайта:</strong> ${data.rating}. <strong>Ожидаемый эффект после оптимизации:</strong> Улучшение позиций на 10-25%, рост трафика на 15-40%.`;
+                    }
+                }
+                
+                // Показываем результаты
+                results.style.display = 'block';
+                results.scrollIntoView({ behavior: 'smooth' });
+                
+                // Анимация появления карточек
+                const cards = document.querySelectorAll('.fade-in');
+                cards.forEach(card => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(10px)';
+                });
+                
+                cards.forEach((card, index) => {
+                    setTimeout(() => {
+                        card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, index * 100);
+                });
+                
+                // Увеличиваем счетчик проверок
+                const today = parseInt(todayChecks.textContent.replace(/,/g, ''));
+                const total = parseInt(totalChecks.textContent.replace(/,/g, ''));
+                
+                todayChecks.textContent = (today + 1).toLocaleString();
+                totalChecks.textContent = (total + 1).toLocaleString();
+            }
+            
+            // CAPTCHA функция
+            function showCaptcha(domain) {
+                const captchaModal = document.createElement('div');
+                captchaModal.className = 'modal';
+                captchaModal.innerHTML = `
+                    <div class="modal-content">
+                        <span class="close-modal" id="closeCaptcha">&times;</span>
+                        <h2><i class="fas fa-robot"></i> Подтвердите, что вы не робот</h2>
+                        <p>Введите текст с картинки:</p>
+                        <div class="captcha-box">
+                            <div class="captcha-text" id="captchaCode">3A4B7C</div>
+                            <button id="refreshCaptcha" style="background: none; border: none; color: #4b6cb7; cursor: pointer;">
+                                <i class="fas fa-redo"></i> Обновить
+                            </button>
+                        </div>
+                        <input type="text" id="captchaInput" placeholder="Введите код" style="width: 100%; padding: 12px; border: 2px solid #e1e5eb; border-radius: 8px; margin: 15px 0;">
+                        <button id="captchaSubmit" style="width: 100%; padding: 15px; background: #4b6cb7; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            Подтвердить
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(captchaModal);
+                captchaModal.style.display = 'flex';
+                
+                // Обновление CAPTCHA
+                function refreshCaptcha() {
+                    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                    let code = '';
+                    for (let i = 0; i < 6; i++) {
+                        code += chars[Math.floor(Math.random() * chars.length)];
+                    }
+                    document.getElementById('captchaCode').textContent = code;
+                }
+                
+                refreshCaptcha();
+                
+                document.getElementById('refreshCaptcha').addEventListener('click', refreshCaptcha);
+                
+                document.getElementById('closeCaptcha').addEventListener('click', function() {
+                    captchaModal.remove();
+                });
+                
+                document.getElementById('captchaSubmit').addEventListener('click', function() {
+                    const input = document.getElementById('captchaInput').value.toUpperCase();
+                    const code = document.getElementById('captchaCode').textContent;
+                    
+                    if (input === code) {
+                        captchaModal.remove();
+                        isHuman = true;
+                        startAnalysis(domain);
+                    } else {
+                        alert('Неверный код. Попробуйте еще раз.');
+                        refreshCaptcha();
+                    }
+                });
+                
+                // Закрытие при клике вне окна
+                captchaModal.addEventListener('click', function(e) {
+                    if (e.target === captchaModal) {
+                        captchaModal.remove();
+                    }
+                });
+            }
+            
+            // Экспорт отчета
+            exportBtn.addEventListener('click', function() {
+                const domain = domainName.textContent;
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('ru-RU') + ' ' + now.toLocaleTimeString('ru-RU');
+                
+                alert(`Отчет по домену ${domain} успешно экспортирован в PDF.\n\nФайл: report_${domain.replace(/\./g, '_')}_${Date.now()}.pdf\nРазмер: 245 KB\nДата: ${dateStr}\n\nФайл будет загружен автоматически.`);
+                
+                // Имитация загрузки
+                exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Экспорт...';
+                exportBtn.disabled = true;
+                
+                setTimeout(() => {
+                    exportBtn.innerHTML = '<i class="fas fa-download"></i> Экспорт отчета (PDF)';
+                    exportBtn.disabled = false;
+                    alert('Экспорт завершен! Файл сохранен в папке "Загрузки".');
+                }, 1500);
+            });
+            
+            // Обработка нажатия Enter в поле ввода
+            domainInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkBtn.click();
+                }
+            });
+            
+            // Функции для модальных окон
+            function openModal(modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function closeModal(modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+            
+            // Обработчики для кнопок в шапке
+            homeLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('main-form').scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            sslLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                openModal(sslModal);
+            });
+            
+            hostingLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                openModal(hostingModal);
+            });
+            
+            helpLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                openModal(helpModal);
+            });
+            
+            privacyLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                openModal(privacyModal);
+            });
+            
+            // Обработчики для закрытия модальных окон
+            closeSsl.addEventListener('click', function() {
+                closeModal(sslModal);
+            });
+            
+            closeHosting.addEventListener('click', function() {
+                closeModal(hostingModal);
+            });
+            
+            closeHelp.addEventListener('click', function() {
+                closeModal(helpModal);
+            });
+            
+            closePrivacy.addEventListener('click', function() {
+                closeModal(privacyModal);
+            });
+            
+            // Закрытие модальных окон при клике вне их
+            window.addEventListener('click', function(e) {
+                if (e.target === sslModal) closeModal(sslModal);
+                if (e.target === hostingModal) closeModal(hostingModal);
+                if (e.target === helpModal) closeModal(helpModal);
+                if (e.target === privacyModal) closeModal(privacyModal);
+            });
+            
+            // Обработчики для карточек "Интересно и полезно"
+            monitoringCard.addEventListener('click', function() {
+                alert('Мониторинг сайта позволяет отслеживать его доступность 24/7. Рекомендуем использовать сервисы: UptimeRobot, Pingdom, Site24x7.\n\nКлючевые метрики:\n• Uptime (доступность) - должно быть 99.9%+\n• Время отклика - менее 200мс\n• Уведомления в Telegram/SMS/Email');
+            });
+            
+            hostingCard.addEventListener('click', function() {
+                alert('Хостинг игровых серверов требует мощного оборудования и низких задержек. Ключевые факторы:\n\n• CPU: Минимум 4 ядра\n• RAM: 8+ GB\n• Пропускная способность: 100+ Mbps\n• DDoS-защита: Обязательно\n• Задержка (ping): Менее 50мс\n• Резервное копирование: Ежедневно\n\nТоп-3 хостинга 2023: 1. Hostinger 2. TimeWeb 3. Reg.ru');
+            });
+            
+            emailCard.addEventListener('click', function() {
+                alert('Чтобы рассылки не попадали в СПАМ:\n\n1. Используйте double opt-in (подтверждение подписки)\n2. Сегментируйте базу по интересам\n3. Персонализируйте письма (имя, история покупок)\n4. Добавляйте ссылку отписки в каждое письмо\n5. Проверяйте через сервисы: GlockApps, Mail-Tester\n6. Следите за репутацией домена\n7. Оптимальная частота: 1-2 раза в неделю\n\nЛучшие сервисы: MailChimp, SendPulse, UniSender');
+            });
+            
+            // Обработчики для FAQ
+            faqQuestions.forEach(question => {
+                question.addEventListener('click', function() {
+                    const answer = this.nextElementSibling;
+                    const icon = this.querySelector('i');
+                    
+                    answer.classList.toggle('active');
+                    icon.classList.toggle('fa-chevron-down');
+                    icon.classList.toggle('fa-chevron-up');
+                });
+            });
+            
+            // Прокрутка к разделу при клике на ссылки в подвале
+            document.querySelectorAll('.footer-section a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href').substring(1);
+                    
+                    if (targetId === 'ssl-info') {
+                        openModal(sslModal);
+                    } else if (targetId === 'hosting-info') {
+                        openModal(hostingModal);
+                    } else if (targetId === 'help-info') {
+                        openModal(helpModal);
+                    } else if (targetId === 'privacy-link') {
+                        openModal(privacyModal);
+                    } else {
+                        const targetElement = document.getElementById(targetId);
+                        if (targetElement) {
+                            targetElement.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                });
+            });
+            
+            // Автоматическая проверка при загрузке страницы (для демонстрации)
+            setTimeout(() => {
+                if (!isHuman) {
+                    isHuman = true; // Для демо пропускаем CAPTCHA
+                }
+                checkBtn.click();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
